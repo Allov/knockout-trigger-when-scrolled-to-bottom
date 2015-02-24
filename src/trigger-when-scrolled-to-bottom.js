@@ -10,43 +10,46 @@ define(['knockout', 'jquery'], function(ko, $) {
             ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
                 unregisterScrollEventIfRegistered(element);
             });
-            
-            var settings = allBindingsAccessor().triggerWhenScrolledToBottomOptions;
 
-            if (isScrolledIntoView(element, settings)) {
-                executeAction(element, viewModel, settings.action);
+            var action = ko.utils.unwrapObservable(valueAccessor());
+            var options = getOptions(allBindingsAccessor);
+
+            if (!ko.utils.unwrapObservable(options.disabled) && isScrolledIntoView(element, options)) {
+                executeAction(element, viewModel, action);
             }
         },
 
         update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-            var mayScroll = ko.utils.unwrapObservable(valueAccessor());
-            var settings = allBindingsAccessor().triggerWhenScrolledToBottomOptions;
+            var action = ko.utils.unwrapObservable(valueAccessor());
+            var options = getOptions(allBindingsAccessor);
 
-            if (mayScroll) {
-                registerScrollEventIfNotAlreadyRegistered(element, settings, viewModel);
-            } else {
+            if (ko.utils.unwrapObservable(options.disabled)) {
                 unregisterScrollEventIfRegistered(element);
+            } else {
+                registerScrollEventIfNotAlreadyRegistered(element, action, options, viewModel);
             }
         }
     };
 
-
-    //TODO: offset
-    //var offset = settings.offset ? settings.offset : '0';
-
     //TODO: debounce!!!
-    function registerScrollEventIfNotAlreadyRegistered(element, settings, viewModel) {
+    function registerScrollEventIfNotAlreadyRegistered(element, action, options, viewModel) {
         var isRegistered = ko.utils.domData.get(element, 'scrollHandler');
 
         if (!isRegistered) {
             ko.utils.domData.set(element, 'scrollHandler', true);
 
             $(window).on('scroll.ko.scrollHandler', function(data, event) {
-                if (isScrolledIntoView(element, settings)) {
-                    executeAction(element, viewModel, settings.action, data, event);
+                if (isScrolledIntoView(element, options)) {
+                    executeAction(element, viewModel, action, data, event);
                 }
             });
         }
+    }
+
+    function getOptions(allBindingsAccessor){
+        return $.extend({
+            disabled: false
+        }, allBindingsAccessor().triggerWhenScrolledToBottomOptions);
     }
 
     function unregisterScrollEventIfRegistered(element) {
@@ -66,12 +69,12 @@ define(['knockout', 'jquery'], function(ko, $) {
         }
     }
 
-    function isScrolledIntoView(elem, settings) {
+    function isScrolledIntoView(elem, options) {
         var docViewTop = $(window).scrollTop();
         var docViewBottom = docViewTop + $(window).height();
         var elemTop = $(elem).offset().top;
         var elemBottom = elemTop + $(elem).height();
 
-        return ((elemBottom + (settings.offset || 0) <= docViewBottom) && (elemTop >= docViewTop));
+        return ((elemBottom + (ko.utils.unwrapObservable(options.offset) || 0) <= docViewBottom) && (elemTop >= docViewTop));
     }
 });

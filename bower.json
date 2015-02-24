@@ -1,0 +1,25 @@
+{
+  "name": "knockout-trigger-when-scrolled-to-bottom",
+  "version": "0.1.0",
+  "authors": [
+    "W3Max"
+  ],
+  "description": "knockout-trigger-when-scrolled-to-bottom",
+  "main": "src/trigger-when-scrolled-to-bottom.js",
+  "moduleType": [
+    "amd"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "knockout": "^3.2.0",
+    "requirejs": "^2.1.15",
+    "jquery": "^2.1.3"
+  }
+}

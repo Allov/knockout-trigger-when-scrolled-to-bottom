@@ -1,5 +1,5 @@
 define(['knockout', 'jquery'], function(ko, $) {
-    "use strict";
+    'use strict';
     //TODO: http://stackoverflow.com/questions/10324240/knockout-binding-handler-teardown-function (voir 2ieme réponse..?) (sur tous les bindings)
     ko.bindingHandlers.triggerWhenScrolledToBottom = {
 
@@ -13,8 +13,8 @@ define(['knockout', 'jquery'], function(ko, $) {
             
             var settings = allBindingsAccessor().triggerWhenScrolledToBottomOptions;
 
-            if (isScrolledIntoView(element)) {
-                executeAction(element, viewModel, settings, event);
+            if (isScrolledIntoView(element, settings)) {
+                executeAction(element, viewModel, settings.action);
             }
         },
 
@@ -32,7 +32,7 @@ define(['knockout', 'jquery'], function(ko, $) {
 
 
     //TODO: offset
-    //var offset = settings.offset ? settings.offset : "0";
+    //var offset = settings.offset ? settings.offset : '0';
 
     //TODO: debounce!!!
     function registerScrollEventIfNotAlreadyRegistered(element, settings, viewModel) {
@@ -41,8 +41,8 @@ define(['knockout', 'jquery'], function(ko, $) {
         if (!isRegistered) {
             ko.utils.domData.set(element, 'scrollHandler', true);
 
-            $(window).on("scroll.ko.scrollHandler", function(data, event) {
-                if (isScrolledIntoView(element)) {
+            $(window).on('scroll.ko.scrollHandler', function(data, event) {
+                if (isScrolledIntoView(element, settings)) {
                     executeAction(element, viewModel, settings.action, data, event);
                 }
             });
@@ -54,7 +54,7 @@ define(['knockout', 'jquery'], function(ko, $) {
 
         if (isRegistered) {
             ko.utils.domData.set(element, 'scrollHandler', null);
-            $(window).off("scroll.ko.scrollHandler");
+            $(window).off('scroll.ko.scrollHandler');
         }
     }
 
@@ -66,12 +66,12 @@ define(['knockout', 'jquery'], function(ko, $) {
         }
     }
 
-    function isScrolledIntoView(elem) {
+    function isScrolledIntoView(elem, settings) {
         var docViewTop = $(window).scrollTop();
         var docViewBottom = docViewTop + $(window).height();
         var elemTop = $(elem).offset().top;
         var elemBottom = elemTop + $(elem).height();
 
-        return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+        return ((elemBottom + (settings.offset || 0) <= docViewBottom) && (elemTop >= docViewTop));
     }
 });

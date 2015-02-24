@@ -71,10 +71,10 @@ define(['knockout', 'jquery'], function(ko, $) {
 
     function isScrolledIntoView(elem, options) {
         var docViewTop = $(window).scrollTop();
-        var docViewBottom = docViewTop + $(window).height();
+        var docViewBottom = docViewTop + $(window).height() + (ko.utils.unwrapObservable(options.offset) || 0);
         var elemTop = $(elem).offset().top;
         var elemBottom = elemTop + $(elem).height();
 
-        return ((elemBottom + (ko.utils.unwrapObservable(options.offset) || 0) <= docViewBottom) && (elemTop >= docViewTop));
+        return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
     }
 });

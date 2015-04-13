@@ -2,7 +2,7 @@
   "name": "knockout-trigger-when-scrolled-to-bottom",
   "version": "0.1.0",
   "authors": [
-    "W3Max"
+    "Maxime Séguin"
   ],
   "description": "knockout-trigger-when-scrolled-to-bottom",
   "main": "src/trigger-when-scrolled-to-bottom.js",

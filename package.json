@@ -8,12 +8,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/W3Max/knockout-trigger-when-scrolled-to-bottom.git"
+    "url": "https://github.com/cbcrc/knockout-trigger-when-scrolled-to-bottom.git"
   },
-  "author": "W3Max",
+  "author": "Maxime Séguin",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/W3Max/knockout-trigger-when-scrolled-to-bottom/issues"
+    "url": "https://github.com/cbcrc/knockout-trigger-when-scrolled-to-bottom/issues"
   },
-  "homepage": "https://github.com/W3Max/knockout-trigger-when-scrolled-to-bottom"
+  "homepage": "https://github.com/cbcrc/knockout-trigger-when-scrolled-to-bottom"
 }

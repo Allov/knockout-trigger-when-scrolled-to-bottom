@@ -1,1 +1,1 @@
-# knockout-trigger-when-scrolled-to-bottom
+# koco-trigger-when-scrolled-to-bottom

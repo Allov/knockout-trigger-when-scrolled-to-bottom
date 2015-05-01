@@ -1,19 +1,15 @@
 {
-  "name": "knockout-trigger-when-scrolled-to-bottom",
-  "version": "0.1.0",
+  "name": "koco-trigger-when-scrolled-to-bottom",
+  "version": "0.2.0",
   "description": "",
-  "main": "src/trigger-when-scrolled-to-bottom.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/cbcrc/knockout-trigger-when-scrolled-to-bottom.git"
+    "url": "https://github.com/cbcrc/koco-trigger-when-scrolled-to-bottom.git"
   },
   "author": "Maxime Séguin",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/cbcrc/knockout-trigger-when-scrolled-to-bottom/issues"
+    "url": "https://github.com/cbcrc/koco-trigger-when-scrolled-to-bottom/issues"
   },
-  "homepage": "https://github.com/cbcrc/knockout-trigger-when-scrolled-to-bottom"
+  "homepage": "https://github.com/cbcrc/koco-trigger-when-scrolled-to-bottom"
 }

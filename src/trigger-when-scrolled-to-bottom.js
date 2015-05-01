@@ -16,6 +16,7 @@ define(['knockout', 'jquery'],
             init: function(element, valueAccessor, allBindingsAccessor, viewModel) {
                 var action = ko.utils.unwrapObservable(valueAccessor());
                 var options = getOptions(allBindingsAccessor);
+                setScrollHandlerIdFromElement(element);
 
                 ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
                     unregisterScrollEventIfRegistered(element, options);
@@ -40,33 +41,44 @@ define(['knockout', 'jquery'],
 
         //TODO: debounce!!!
         function registerScrollEventIfNotAlreadyRegistered(element, action, options, viewModel) {
-            var isRegistered = ko.utils.domData.get(element, options.handler);
+            var isScrollHandlerRegistered = ko.utils.domData.get(element, 'isScrollHandlerRegistered');
 
-            if (!isRegistered) {
-                ko.utils.domData.set(element, options.handler, true);
+            if (!isScrollHandlerRegistered) {
+                ko.utils.domData.set(element, 'isScrollHandlerRegistered', true);
 
-                $(options.useParent ? $(element).parent() : window).on('scroll.ko.' + options.handler, function(data, event) {
-                    if (isScrolledIntoView(element, options)) {
-                        executeAction(element, viewModel, action, data, event);
-                    }
-                });
+                $(options.useParent ? $(element).parent() : window)
+                    .on(getScrollHandlerIdFromElement(element), function(data, event) {
+                        if (isScrolledIntoView(element, options)) {
+                            executeAction(element, viewModel, action, data, event);
+                        }
+                    });
             }
         }
 
+        function getScrollHandlerIdFromElement(element) {
+            return 'scroll.ko.' + ko.utils.domData.get(element, 'scrollHandlerId');
+        }
+
+        function setScrollHandlerIdFromElement(element) {
+            ko.utils.domData.set(element, 'scrollHandlerId', 'scrollHandler' + (++handlerId));
+        }
+
         function getOptions(allBindingsAccessor) {
+            //TODO: Attention, triggerWhenScrolledToBottomOptions pourrait contenir des observables
+
             return $.extend({
                 disabled: false,
                 useParent: false,
-                handler: 'scrollHandler' + (++handlerId)
+                offset: 0
             }, allBindingsAccessor().triggerWhenScrolledToBottomOptions);
         }
 
         function unregisterScrollEventIfRegistered(element, options) {
-            var isRegistered = ko.utils.domData.get(element, options.handler);
+            var isScrollHandlerRegistered = ko.utils.domData.get(element, 'isScrollHandlerRegistered');
 
-            if (isRegistered) {
-                ko.utils.domData.set(element, options.handler, null);
-                $(options.useParent ? $(element).parent() : window).off('scroll.ko.' + options.handler);
+            if (isScrollHandlerRegistered) {
+                ko.utils.domData.set(element,'isScrollHandlerRegistered', null);
+                $(options.useParent ? $(element).parent() : window).off(getScrollHandlerIdFromElement(element));
             }
         }
 
@@ -81,10 +93,11 @@ define(['knockout', 'jquery'],
         function isScrolledIntoView(element, options) {
             if (options.useParent) {
                 var $parent = $(element).parent();
+
                 return $parent.scrollTop() + $parent.innerHeight() >= $parent[0].scrollHeight;
             } else {
                 var docViewTop = $(window).scrollTop();
-                var docViewBottom = docViewTop + $(window).height() + (ko.utils.unwrapObservable(options.offset) || 0);
+                var docViewBottom = docViewTop + $(window).height() + options.offset;
                 var elemTop = $(element).offset().top;
                 var elemBottom = elemTop + $(element).height();
 

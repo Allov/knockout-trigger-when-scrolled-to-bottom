@@ -1,107 +1,106 @@
 // Copyright (c) CBC/Radio-Canada. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-define(['knockout', 'jquery'],
-    function(ko, $) {
-        'use strict';
+import ko from 'knockout';
+import $ from 'jquery';
 
-        var handlerId = 0;
 
-        //TODO: http://stackoverflow.com/questions/10324240/knockout-binding-handler-teardown-function (voir 2ieme réponse..?) (sur tous les bindings)
-        ko.bindingHandlers.triggerWhenScrolledToBottom = {
+var handlerId = 0;
 
-            //ko.utils.domData.get(element, key)
-            //ko.utils.domData.set(element, key, value)
-            //ko.utils.domData.clear(element)
-            init: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-                var action = ko.utils.unwrapObservable(valueAccessor());
-                var options = getOptions(allBindingsAccessor);
-                setScrollHandlerIdFromElement(element);
+//TODO: http://stackoverflow.com/questions/10324240/knockout-binding-handler-teardown-function (voir 2ieme réponse..?) (sur tous les bindings)
+ko.bindingHandlers.triggerWhenScrolledToBottom = {
 
-                ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
-                    unregisterScrollEventIfRegistered(element, options);
-                });
+    //ko.utils.domData.get(element, key)
+    //ko.utils.domData.set(element, key, value)
+    //ko.utils.domData.clear(element)
+    init: function(element, valueAccessor, allBindingsAccessor, viewModel) {
+        var action = ko.utils.unwrapObservable(valueAccessor());
+        var options = getOptions(allBindingsAccessor);
+        setScrollHandlerIdFromElement(element);
 
-                if (!ko.utils.unwrapObservable(options.disabled) && isScrolledIntoView(element, options)) {
-                    executeAction(element, viewModel, action);
+        ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
+            unregisterScrollEventIfRegistered(element, options);
+        });
+
+        if (!ko.utils.unwrapObservable(options.disabled) && isScrolledIntoView(element, options)) {
+            executeAction(element, viewModel, action);
+        }
+    },
+
+    update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
+        var action = ko.utils.unwrapObservable(valueAccessor());
+        var options = getOptions(allBindingsAccessor);
+
+        if (ko.utils.unwrapObservable(options.disabled)) {
+            unregisterScrollEventIfRegistered(element, options);
+        } else {
+            registerScrollEventIfNotAlreadyRegistered(element, action, options, viewModel);
+        }
+    }
+};
+
+//TODO: debounce!!!
+function registerScrollEventIfNotAlreadyRegistered(element, action, options, viewModel) {
+    var isScrollHandlerRegistered = ko.utils.domData.get(element, 'isScrollHandlerRegistered');
+
+    if (!isScrollHandlerRegistered) {
+        ko.utils.domData.set(element, 'isScrollHandlerRegistered', true);
+
+        $(options.useParent ? $(element).parent() : window)
+            .on(getScrollHandlerIdFromElement(element), function(data, event) {
+                if (isScrolledIntoView(element, options)) {
+                    executeAction(element, viewModel, action, data, event);
                 }
-            },
+            });
+    }
+}
 
-            update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-                var action = ko.utils.unwrapObservable(valueAccessor());
-                var options = getOptions(allBindingsAccessor);
+function getScrollHandlerIdFromElement(element) {
+    return 'scroll.ko.' + ko.utils.domData.get(element, 'scrollHandlerId');
+}
 
-                if (ko.utils.unwrapObservable(options.disabled)) {
-                    unregisterScrollEventIfRegistered(element, options);
-                } else {
-                    registerScrollEventIfNotAlreadyRegistered(element, action, options, viewModel);
-                }
-            }
-        };
+function setScrollHandlerIdFromElement(element) {
+    ko.utils.domData.set(element, 'scrollHandlerId', 'scrollHandler' + (++handlerId));
+}
 
-        //TODO: debounce!!!
-        function registerScrollEventIfNotAlreadyRegistered(element, action, options, viewModel) {
-            var isScrollHandlerRegistered = ko.utils.domData.get(element, 'isScrollHandlerRegistered');
+function getOptions(allBindingsAccessor) {
+    //TODO: Attention, triggerWhenScrolledToBottomOptions pourrait contenir des observables
 
-            if (!isScrollHandlerRegistered) {
-                ko.utils.domData.set(element, 'isScrollHandlerRegistered', true);
+    return $.extend({
+        disabled: false,
+        useParent: false,
+        offset: 0
+    }, allBindingsAccessor().triggerWhenScrolledToBottomOptions);
+}
 
-                $(options.useParent ? $(element).parent() : window)
-                    .on(getScrollHandlerIdFromElement(element), function(data, event) {
-                        if (isScrolledIntoView(element, options)) {
-                            executeAction(element, viewModel, action, data, event);
-                        }
-                    });
-            }
-        }
+function unregisterScrollEventIfRegistered(element, options) {
+    var isScrollHandlerRegistered = ko.utils.domData.get(element, 'isScrollHandlerRegistered');
 
-        function getScrollHandlerIdFromElement(element) {
-            return 'scroll.ko.' + ko.utils.domData.get(element, 'scrollHandlerId');
-        }
+    if (isScrollHandlerRegistered) {
+        ko.utils.domData.set(element, 'isScrollHandlerRegistered', null);
+        $(options.useParent ? $(element).parent() : window).off(getScrollHandlerIdFromElement(element));
+    }
+}
 
-        function setScrollHandlerIdFromElement(element) {
-            ko.utils.domData.set(element, 'scrollHandlerId', 'scrollHandler' + (++handlerId));
-        }
+function executeAction(element, viewModel, action, data, event) {
+    if (typeof action === 'string' || action instanceof String) {
+        $(element).trigger(action);
+    } else {
+        action.call(viewModel, data, event);
+    }
+}
 
-        function getOptions(allBindingsAccessor) {
-            //TODO: Attention, triggerWhenScrolledToBottomOptions pourrait contenir des observables
+function isScrolledIntoView(element, options) {
+    if (options.useParent) {
+        var $parent = $(element).parent();
 
-            return $.extend({
-                disabled: false,
-                useParent: false,
-                offset: 0
-            }, allBindingsAccessor().triggerWhenScrolledToBottomOptions);
-        }
+        return $parent.scrollTop() + $parent.innerHeight() >= $parent[0].scrollHeight;
+    } else {
+        var docViewTop = $(window).scrollTop();
+        var docViewBottom = docViewTop + $(window).height() + options.offset;
+        var elemTop = $(element).offset().top;
+        var elemBottom = elemTop + $(element).height();
 
-        function unregisterScrollEventIfRegistered(element, options) {
-            var isScrollHandlerRegistered = ko.utils.domData.get(element, 'isScrollHandlerRegistered');
-
-            if (isScrollHandlerRegistered) {
-                ko.utils.domData.set(element,'isScrollHandlerRegistered', null);
-                $(options.useParent ? $(element).parent() : window).off(getScrollHandlerIdFromElement(element));
-            }
-        }
-
-        function executeAction(element, viewModel, action, data, event) {
-            if (typeof action === 'string' || action instanceof String) {
-                $(element).trigger(action);
-            } else {
-                action.call(viewModel, data, event);
-            }
-        }
-
-        function isScrolledIntoView(element, options) {
-            if (options.useParent) {
-                var $parent = $(element).parent();
-
-                return $parent.scrollTop() + $parent.innerHeight() >= $parent[0].scrollHeight;
-            } else {
-                var docViewTop = $(window).scrollTop();
-                var docViewBottom = docViewTop + $(window).height() + options.offset;
-                var elemTop = $(element).offset().top;
-                var elemBottom = elemTop + $(element).height();
-
-                return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
-            }
-        }
-    });
+        return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+    }
+}

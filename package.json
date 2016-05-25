@@ -11,8 +11,13 @@
   "main": "src/trigger-when-scrolled-to-bottom.js",
   "license": "MIT",
   "dependencies": {
-    "knockout": "^3.3.0",
-    "requirejs": "^2.1.15",
-    "jquery": "^2.1.3"
+    "jquery": "^2.2.4",
+    "knockout": "^3.4.0",
+    "koco": "^1.0.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.9.0",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-stage-0": "^6.5.0"
   }
 }

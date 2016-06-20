@@ -49,7 +49,15 @@ define(['knockout', 'jquery'],
                 $(options.useParent ? $(element).parent() : window)
                     .on(getScrollHandlerIdFromElement(element), function(data, event) {
                         if (isScrolledIntoView(element, options)) {
-                            executeAction(element, viewModel, action, data, event);
+							if(options.activeTabSelector) {
+								var isParentTabActive = $(element).parents(options.activeTabSelector);
+								
+								// Activate the feature only if we're on the right tab
+								if(isParentTabActive.length > 0)
+									executeAction(element, viewModel, action, data, event);
+							} else {
+								executeAction(element, viewModel, action, data, event);
+							}
                         }
                     });
             }
@@ -69,7 +77,8 @@ define(['knockout', 'jquery'],
             return $.extend({
                 disabled: false,
                 useParent: false,
-                offset: 0
+                offset: 0,
+				activeTabSelector: ''
             }, allBindingsAccessor().triggerWhenScrolledToBottomOptions);
         }
 
